@@ -42,26 +42,34 @@ class ProductController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'image' => 'nullable|string',
+            'image' => 'nullable|file|mimes:jpg,jpeg,png,gif',
             'price' => 'required|numeric',
-            'order_number' => 'nullable|integer',
             'memo' => 'nullable|string',
-            'user_id' => 'required|integer|exists:users,id',
             'type' => 'required|integer',
         ]);
 
         $path = null;
         if ($request->hasFile('image')) {
-            $path = $this->convertToWebP($request->file('image'));
+            $file = $request->file('image');
+            $file_name = 'img_' . Str::uuid()->toString() . '.webp';
+            $imagePath = public_path('upload/images/' . $file_name);
+
+            // 確保目錄存在
+            if (!file_exists(public_path('upload/images/'))) {
+                mkdir(public_path('upload/images/'), 0755, true);
+            }
+
+            // 轉換為 WebP 格式
+            Image::make($file)->fit(640, 640)->encode('webp', 90)->save($imagePath);
+
+            $path = $file_name;
         }
 
         $product = Product::create([
             'name' => $request->name,
             'image' => $path,
             'price' => $request->price,
-            'order_number' => $request->order_number,
             'memo' => $request->memo,
-            'user_id' => $request->user_id,
             'type' => $request->type,
         ]);
 
@@ -90,23 +98,32 @@ class ProductController extends Controller
     {
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'image' => 'nullable|string',
+            'image' => 'nullable|file|mimes:jpg,jpeg,png,gif',
             'price' => 'sometimes|required|numeric',
-            'order_number' => 'nullable|integer',
             'memo' => 'nullable|string',
-            'user_id' => 'sometimes|required|integer|exists:users,id',
             'type' => 'sometimes|required|integer',
         ]);
 
+        $data = $request->all();
+
         if ($request->hasFile('image')) {
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
+            $file = $request->file('image');
+            $file_name = 'img_' . Str::uuid()->toString() . '.webp';
+            $imagePath = public_path('upload/images/' . $file_name);
+
+            // 確保目錄存在
+            if (!file_exists(public_path('upload/images/'))) {
+                mkdir(public_path('upload/images/'), 0755, true);
             }
-            $path = $this->convertToWebP($request->file('image'));
-            $product->image = $path;
+
+            // 轉換為 WebP 格式
+            Image::make($file)->fit(640, 640)->encode('webp', 90)->save($imagePath);
+
+            $data['image'] = $file_name;
         }
 
-        $product->update($request->all());
+        $product->update($data);
+
         return response()->json($product);
     }
 
@@ -120,19 +137,5 @@ class ProductController extends Controller
     {
         $product->delete();
         return response()->json(null, 204);
-    }
-
-    protected function convertToWebP($file)
-    {
-        $file_name = 'img_' . Str::uuid()->toString() . '.webp';
-        $imagePath = public_path('upload/images/' . $file_name);
-
-        if (!file_exists(dirname($imagePath))) {
-            mkdir(dirname($imagePath), 0755, true);
-        }
-
-        Image::read($file)->scale(640, 640)->toWebp()->save($imagePath);
-
-        return 'upload/images/' . $file_name;
     }
 }
