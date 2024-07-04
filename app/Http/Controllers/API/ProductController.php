@@ -101,8 +101,11 @@ class ProductController extends Controller
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Product $product)
+    public function update(Request $request, $id)
     {
+
+        $product = Product::findOrFail($id);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'image' => 'nullable|file|mimes:jpg,jpeg,png,gif',
