@@ -49,8 +49,6 @@ class ProductController extends Controller
             'user_id' => 'required|integer',
         ]);
 
-
-
         $path = null;
         if ($request->hasFile('image')) {
             $file = $request->file('image');
@@ -108,7 +106,6 @@ class ProductController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'image' => 'nullable|file|mimes:jpg,jpeg,png,gif',
             'price' => 'required|numeric',
             'memo' => 'nullable|string',
             'type' => 'required|integer',
