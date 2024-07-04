@@ -104,15 +104,13 @@ class ProductController extends Controller
 
         $product = Product::findOrFail($id);
 
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
             'memo' => 'nullable|string',
             'type' => 'required|integer',
             'user_id' => 'required|integer',
         ]);
-
-        $data = $request->all();
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
@@ -127,10 +125,10 @@ class ProductController extends Controller
             // 轉換為 WebP 格式
             Image::read($file)->scale(640, 640)->toWebp()->save($imagePath);
 
-            $data['image'] = $file_name;
+            $validatedData['image'] = $file_name;
         }
 
-        $product->update($data);
+        $product->update($validatedData);
 
         return response()->json($product);
     }
