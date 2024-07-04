@@ -31,11 +31,6 @@ class Member extends Model
         'sex' => 'boolean', 
     ];
 
-    public function getSexAttribute($value)
-    {
-        return $value ? '男' : '女';
-    }   
-
     public function memberAddresses()
     {
         return $this->hasMany(MemberAddress::class);

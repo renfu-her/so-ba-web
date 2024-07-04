@@ -88,6 +88,9 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
+
+        $product->image = url('images/products/' . $product->image);
+
         return response()->json($product);
     }
 
